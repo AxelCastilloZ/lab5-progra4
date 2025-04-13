@@ -7,7 +7,7 @@ function App() {
   const [todoDescription, setTodoDescription] = useState('')
   const [todoList, setTodoList] = useState<Todo[]>([])
 
-  // Leer tareas desde localStorage
+  // Se leen las tareas desde localStorage
   useEffect(() => {
     const storedItems = loadItems()
     if (storedItems) {
@@ -49,7 +49,7 @@ function App() {
         : todo
     )
 
-    // Mover las tareas completadas al final
+    // Mover las tareas completadas al final de la lista
     updatedList.sort((a, b) => Number(a.isDone) - Number(b.isDone))
 
     setTodoList(updatedList)
