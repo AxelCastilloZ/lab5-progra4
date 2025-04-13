@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { loadItems, saveItems } from './utils/storage'
-import { Todo } from './types/todo'
+import { Todo } from './types/Todo'
 import './App.css'
 
 function App() {
   const [todoDescription, setTodoDescription] = useState('')
   const [todoList, setTodoList] = useState<Todo[]>([])
 
-  // Se leen las tareas desde localStorage
+  // Se leen las tareas desde localStorage al cargar la app
   useEffect(() => {
     const storedItems = loadItems()
     if (storedItems) {
@@ -15,15 +15,12 @@ function App() {
     }
   }, [])
 
-  // Guardar tareas en localStorage
-  useEffect(() => {
-    saveItems(todoList)
-  }, [todoList])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTodoDescription(e.target.value)
   }
 
+  // Crear una nueva tarea
   const handleClick = () => {
     if (!todoDescription.trim()) return
 
@@ -34,10 +31,13 @@ function App() {
       doneAt: null
     }
 
-    setTodoList([newTodo, ...todoList])
+    const updatedList = [newTodo, ...todoList]
+    setTodoList(updatedList)
+    saveItems(updatedList) // Guardar en localStorage
     setTodoDescription('')
   }
 
+  // Cambiar estado de completado
   const toggleDone = (id: number) => {
     const updatedList = todoList.map(todo =>
       todo.id === id
@@ -49,10 +49,29 @@ function App() {
         : todo
     )
 
-    // Mover las tareas completadas al final de la lista
+   
     updatedList.sort((a, b) => Number(a.isDone) - Number(b.isDone))
 
     setTodoList(updatedList)
+    saveItems(updatedList) 
+  }
+
+  // Eliminar una tarea
+  const deleteTodo = (id: number) => {
+    const updatedList = todoList.filter(todo => todo.id !== id)
+    setTodoList(updatedList)
+    saveItems(updatedList) 
+  }
+
+  // Editar una tarea
+  const editTodo = (id: number, newDescription: string) => {
+    const updatedList = todoList.map(todo =>
+      todo.id === id
+        ? { ...todo, description: newDescription }
+        : todo
+    )
+    setTodoList(updatedList)
+    saveItems(updatedList) 
   }
 
   return (
@@ -70,7 +89,7 @@ function App() {
       <div style={{ marginTop: 20 }}>TODOs Here:</div>
       <ul>
         {todoList.map(todo => (
-          <li key={todo.id}>
+          <li key={todo.id} style={{ marginBottom: '10px' }}>
             <input
               type="checkbox"
               checked={todo.isDone}
@@ -80,7 +99,26 @@ function App() {
             <span style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
               {todo.description}
             </span>
-            {todo.isDone && <small style={{ marginLeft: 10 }}> Fecha {todo.doneAt}</small>}
+            {todo.isDone && <small style={{ marginLeft: 10 }}>Fecha: {todo.doneAt}</small>}
+
+            <button
+              onClick={() => deleteTodo(todo.id)}
+              style={{ marginLeft: 10 }}
+            >
+              Eliminar
+            </button>
+
+            <button
+              onClick={() => {
+                const newDescription = prompt('Editar tarea:', todo.description)
+                if (newDescription !== null && newDescription.trim() !== '') {
+                  editTodo(todo.id, newDescription)
+                }
+              }}
+              style={{ marginLeft: 5 }}
+            >
+              Editar
+            </button>
           </li>
         ))}
       </ul>
@@ -89,4 +127,3 @@ function App() {
 }
 
 export default App
-//
